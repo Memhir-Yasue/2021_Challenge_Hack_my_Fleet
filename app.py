@@ -6,10 +6,12 @@ import dash_daq as daq
 import pandas as pd
 from graphlib import map_graph
 import os
+from dash.dependencies import Input, Output
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+
 # app = dash.Dash(__name__)
 
 # deployment heroku
@@ -20,15 +22,6 @@ df = pd.read_csv('https://hack-objectstore.nyc3.digitaloceanspaces.com/by_month_
 
 colors = {'yellow': '#FFCD05', 'dark-gray': '#231F20', 'white': '#FFFFFF', 'light-gray': '#d3d3d3'}
 
-# Options for control panel, feel free to change around!!!!
-genders = {"Female": 0, "Male": 1, }
-educations = {"None": 0, "Lower than High School": 1, "High-School/GED": 2, "College/eqv": 3, "Graduate": 4}
-ages = {"Under 35": 0, "35-55": 1, "Over 55": 2}
-socio = {"Bottom 0-10%": 5, "Bottom 10-20%": 15, "Bottom 20-30%": 25, "Bottom 30-40%": 35, "Top 40-50%": 45,
-           "Top 50-60%": 55, "Top 60-70%": 65, "Top 70-80%": 75,  "Top 80-90%": 85, "Top 90-100%": 95}
-disability = {"No": 0, "Yes": 1}
-productivity = {"I am Yoda": 250, "Work hard, play-hard": 170, "I take things easy": 155,
-                "Cs get degrees, right?": 140, "I like to sleep": 100}
 
 app.layout = html.Div([
 
@@ -122,5 +115,18 @@ app.layout = html.Div([
     ], id='charts'),
 ], id='hero')
 
-if __name__ == '__main__':
-    app.run_server(debug=True)
+def get_filtered_data(indices: list):
+    return df.loc[indices].to_dict('records')
+
+
+@app.callback(
+    Output('output-table', 'data'),
+    Input('map-graph', 'selectedData'))
+def update_table(selectedData):
+    indices_to_show = []
+    for i in range(len(selectedData['points'])):
+        # print(hoverData['points'][i])
+        # print("\n")
+        indices_to_show.append(selectedData['points'][i]['pointNumber'])
+    print(indices_to_show)
+    return get_filtered_data(indices_to_show)
